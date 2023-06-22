@@ -2,7 +2,10 @@
 name = "mp-rs"
 version = "0.1.0"
 edition = "2021"
+authors = ["Dahel Ihab <ihg.bk65@gmail.com>"] 
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+ncurses = "5.101.0"
+rodio = "0.17.1"
