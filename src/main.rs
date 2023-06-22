@@ -54,14 +54,14 @@ fn main() {
 
     let mut quit = false;
     let mut ui = Ui::default();
-    let mut status = Status::Playing;
+    let mut status = Status::Paused;
 
     while !quit {
         erase();
         ui.begin(0, 0);
         match status {
-            Status::Paused  => ui.label(" pause [play]", REGULAR_PAIR),
-            Status::Playing => ui.label("[pause] play ", REGULAR_PAIR)
+            Status::Paused => ui.label("[pause] play ", REGULAR_PAIR),
+            Status::Playing=> ui.label(" pause [play]", REGULAR_PAIR)
         }
 
         let key = getch();
@@ -72,6 +72,7 @@ fn main() {
                     .expect("ERROR: No such file or directory"));
                 let source = Decoder::new(file).unwrap();
                 sink.append(source); 
+                status = Status::Playing;
             },
 
             'q' => {
