@@ -9,8 +9,10 @@ a simple TUI music player written in rust
 ```
 git clone https://github.com/ihab65/mp-rs.git
 cd mp-rs/
-cargo run
+cargo run <file_path>
 ```
+- **Important ! :** `<file_path>` should be a audio file mp3 / wav / ...
+
 ## Navigation :
 | key         | action      |
 | ----------- | ----------- |
