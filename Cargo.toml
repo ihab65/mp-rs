@@ -9,3 +9,4 @@ authors = ["Dahel Ihab <ihg.bk65@gmail.com>"]
 [dependencies]
 ncurses = "5.101.0"
 rodio = "0.17.1"
+walkdir = "2.3.3"
