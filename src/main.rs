@@ -113,15 +113,15 @@ fn main() {
             ui.end_list();
 
             attron(COLOR_PAIR(HIGHLIGHTED_PAIR));
-            mvprintw(LINES() - 1 ,0 ," press Enter to launch ");
+            mvprintw(LINES() - 1 ,0 ," press Enter to launch/stop ");
             attroff(COLOR_PAIR(HIGHLIGHTED_PAIR));
 
             attron(COLOR_PAIR(HIGHLIGHTED_PAIR)); 
-            mvprintw(LINES() - 1 ," press Enter to launch ".len() as i32 + 1 ," press q to quit ");
+            mvprintw(LINES() - 1 ," press Enter to launch/stop ".len() as i32 + 1 ," press q to quit ");
             attroff(COLOR_PAIR(HIGHLIGHTED_PAIR));
 
             attron(COLOR_PAIR(HIGHLIGHTED_PAIR)); 
-            mvprintw(LINES() - 1," press q to quit ".len() as i32 + " press Enter to launch ".len() as i32 + 2 ," press Space to pause/play ");
+            mvprintw(LINES() - 1," press q to quit ".len() as i32 + " press Enter to launch/stop ".len() as i32 + 2 ," press Space to pause/play ");
             attroff(COLOR_PAIR(HIGHLIGHTED_PAIR));
         }
 
