@@ -1,4 +1,5 @@
 use ncurses::*;
+use ui::{StatusBar, StatusBarPart};
 use walkdir::{DirEntry, WalkDir};
 use std::env;
 use std::{fs::File, process};
@@ -82,6 +83,7 @@ fn main() {
     init_pair(COLORED_PAIR, COLOR_GREEN, COLOR_YELLOW);
 
     let mut quit = false;
+    let mut state = String::new();
     let mut ui = ui::Ui::default();
     let mut status = Status::Stoped;
     let mut index: usize = 0;
@@ -93,13 +95,13 @@ fn main() {
             ui.begin(0, 0);
             match status {
                 Status::Paused => {
-                    ui.label(" Stoped  Playing  [Paused]", REGULAR_PAIR);
+                    state = " Paused  ".to_string();
                 },
                 Status::Playing => {
-                    ui.label(" Stoped [Playing] Paused ", REGULAR_PAIR);
+                    state = " Playing ".to_string();
                 },
                 Status::Stoped => {
-                    ui.label("[Stoped] Playing  Paused ", REGULAR_PAIR)
+                    state = " Stoped  ".to_string();
                 }
             }
             
@@ -112,17 +114,23 @@ fn main() {
             }
             ui.end_list();
 
-            attron(COLOR_PAIR(HIGHLIGHTED_PAIR));
-            mvprintw(LINES() - 1 ,0 ," press Enter to launch/stop ");
-            attroff(COLOR_PAIR(HIGHLIGHTED_PAIR));
+            start_color();
+            init_pair(1, COLOR_BLACK, COLOR_BLUE);
+            init_pair(2, COLOR_WHITE, COLOR_BLACK);
+            init_pair(3, COLOR_WHITE, COLOR_RED);
 
-            attron(COLOR_PAIR(HIGHLIGHTED_PAIR)); 
-            mvprintw(LINES() - 1 ," press Enter to launch/stop ".len() as i32 + 1 ," press q to quit ");
-            attroff(COLOR_PAIR(HIGHLIGHTED_PAIR));
+            let song_name = " ".to_owned() + &songs.get(index)
+                .unwrap()
+                .trim_start_matches(&curr_dir)
+                .trim_start_matches("/")
+                .clone() + " ";
 
-            attron(COLOR_PAIR(HIGHLIGHTED_PAIR)); 
-            mvprintw(LINES() - 1," press q to quit ".len() as i32 + " press Enter to launch/stop ".len() as i32 + 2 ," press Space to pause/play ");
-            attroff(COLOR_PAIR(HIGHLIGHTED_PAIR));
+            let mut statusbar = StatusBar {parent: stdscr(), parts: Vec::<StatusBarPart>::new()};
+            statusbar.status_bar(3, stdscr());
+            statusbar.set_text(0, state, COLOR_PAIR(1));
+            statusbar.set_text(1, song_name, COLOR_PAIR(2));
+            statusbar.set_text(2, " Cool Text ".to_string(), COLOR_PAIR(3));
+            statusbar.draw();
         }
 
         let key = getch();

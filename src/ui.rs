@@ -55,3 +55,55 @@ impl Ui {
     //     ()
     // }
 }
+
+#[derive(Clone, Default)]
+pub struct StatusBarPart {
+    text: String,
+    attributes: attr_t
+}
+impl StatusBarPart {
+    pub fn get_text(&mut self) -> String {
+        return self.text.clone() ;
+    }
+    pub fn set_text(&mut self, text: String, attr: attr_t) {
+        self.text = text;
+        if attr != u32::MAX {
+            self.attributes = attr
+        }
+    }
+    pub fn get_attrs(&mut self) -> attr_t {
+        return self.attributes;
+    }
+}
+
+
+pub struct StatusBar{
+    pub parent: WINDOW,
+    pub parts: Vec<StatusBarPart>
+}
+impl StatusBar {
+    pub fn status_bar(&mut self, part_len: usize, parent: WINDOW) {
+        self.parent = parent;
+        let part: StatusBarPart = StatusBarPart::default();
+        self.parts = vec![part ;part_len];
+    }
+
+    pub fn set_text(&mut self, part_index: usize, msg: String, attributes: attr_t) {
+        self.parts[part_index].set_text(msg, attributes)
+    }
+
+    pub fn draw(&mut self) {
+        let output_row = getmaxy(self.parent) - 1;
+        let mut i = 0;
+
+        wmove(self.parent, output_row, 0);
+
+        while i < self.parts.len() {
+            let part = &mut self.parts[i];
+            attron(part.get_attrs());
+            wprintw(self.parent, &part.get_text());
+            attroff(part.get_attrs());
+            i += 1;
+        }
+    }
+}
