@@ -9,10 +9,6 @@ use rodio::{Decoder, OutputStream, Sink};
 mod ui;
 const REGULAR_PAIR: i16 = 0;
 const HIGHLIGHTED_PAIR: i16 = 1;
-
-// use walkdir::DirEntry;
-
-
 const COLORED_PAIR: i16 = 2;
 
 enum Status {
@@ -20,25 +16,22 @@ enum Status {
     Playing,
     Stoped
 }
-// Logic for reading Dir's
+// Logic for knowing if it's a audio file
 // --- --- --- --- --- --- --- --- --- --- --- ---
-// fn get_path(paths_lsit: Vec<String>) {
-//     todo!()
+
+// const MUSIC_FILES: [&str; 4] = ["mp3", "wav", "ogg", "flac"];
+
+// fn is_music_file(entry: &DirEntry) -> bool {
+//     entry
+//         .path()
+//         .extension()
+//         .and_then(std::ffi::OsStr::to_str)
+//         .map_or(false, |extension| MUSIC_FILES.contains(&extension))
 // }
 
-fn get_file(entry: DirEntry) -> Result<String, ()> {
-    match entry.path().to_str() {
-        Some(file) => {
-            let file = file.to_string();
-            Ok(file)
-        },
-        None => {
-            Err(println!("ERROR: failed to convert `DirEntry` to var of type String"))
-        }
-    }
-}
-
 fn main() {
+
+    // temporary arg parsing
     
     let mut args = env::args();
     args.next().unwrap();
@@ -52,22 +45,14 @@ fn main() {
         }
     };
 
-    // Logic for reading Dir's
-    // --- --- --- --- --- --- --- --- --- --- --- ---
-    let mut songs = Vec::<String>::new();
+    
+// Logic for reading Dir's
 
-    for entry in WalkDir::new(file_path.clone()) {
-        match entry {
-            Ok(entry) => {
-                songs.push(
-                    get_file(entry).unwrap()
-                );
-            },
-            Err(_) => eprintln!("ERROR: specifed path doesn't exist")
-        }
-    }
-
-    // process::exit(1);
+    let mut songs: Vec<_> = WalkDir::new(file_path)
+        .into_iter()
+        .filter_map(Result::ok)
+        .filter_map(|entry| entry.path().to_str().map(String::from))
+        .collect();
 
     let (_stream, stream_handle) = OutputStream::try_default().unwrap();
     let sink = Sink::try_new(&stream_handle).unwrap();

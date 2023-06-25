@@ -95,11 +95,17 @@ impl StatusBar {
     pub fn draw(&mut self) {
         let output_row = getmaxy(self.parent) - 1;
         let mut i = 0;
+        let parts_len = self.parts.len();
 
         wmove(self.parent, output_row, 0);
 
         while i < self.parts.len() {
             let part = &mut self.parts[i];
+
+            if i == parts_len - 1 {
+                wmove(self.parent, output_row, getmaxx(self.parent) - part.get_text().len() as i32);
+            }
+
             attron(part.get_attrs());
             wprintw(self.parent, &part.get_text());
             attroff(part.get_attrs());
