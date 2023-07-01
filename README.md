@@ -12,7 +12,10 @@ git clone https://github.com/ihab65/mp-rs.git
 cd mp-rs/
 cargo run <Music_Dir_path>
 ```
-- **Important ! :** `<Music_Dir_path>` should be a directory that containes audio file (mp3 / wav / ...) only .
+- **Important ! :** 
+- `<Music_Dir_path>` should be a directory that containes audio files if not the files or dirs present in there won't show in the list .
+- supported audio file formats are "mp3", "wav", "ogg", "flac" . 
+
 
 ## Navigation :
 
