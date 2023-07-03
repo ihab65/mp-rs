@@ -7,29 +7,47 @@ use std::io::BufReader;
 use rodio::{Decoder, OutputStream, Sink};
 
 mod ui;
+// mod lib;
+
+const MUSIC_FILES: [&str; 4] = ["mp3", "wav", "ogg", "flac"];
 const REGULAR_PAIR: i16 = 0;
 const HIGHLIGHTED_PAIR: i16 = 1;
 const COLORED_PAIR: i16 = 2;
 
+#[derive(PartialEq)]
 enum Status {
     Paused,
     Playing,
     Stoped
 }
-// Logic for knowing if it's a audio file
-// --- --- --- --- --- --- --- --- --- --- --- ---
 
-// const MUSIC_FILES: [&str; 4] = ["mp3", "wav", "ogg", "flac"];
+fn is_music_file(entry: &DirEntry) -> bool {
+    entry
+        .path()
+        .extension()
+        .and_then(std::ffi::OsStr::to_str)
+        .map_or(false, |extension| MUSIC_FILES.contains(&extension))
+}
 
-// fn is_music_file(entry: &DirEntry) -> bool {
-//     entry
-//         .path()
-//         .extension()
-//         .and_then(std::ffi::OsStr::to_str)
-//         .map_or(false, |extension| MUSIC_FILES.contains(&extension))
-// }
+fn get_file(entry: DirEntry) -> Result<String, ()> {
+    match entry.path().to_str() {
+        Some(file) => {
+            let file = file.to_string();
+            Ok(file)
+        },
+        None => {
+            Err(println!("ERROR: failed to convert `DirEntry` to var of type String"))
+        }
+    }
+}
 
 fn main() {
+
+    // argument parsing
+
+    // let args = lib::Cli::parse();
+
+    // process::exit(1);
 
     // temporary arg parsing
     
@@ -39,7 +57,7 @@ fn main() {
     let file_path = match args.next() {
         Some(file_path) => file_path,
         None => {
-            eprintln!("Usage: mp-rs <file-path>");
+            eprintln!("Usage: mp-rs <path>");
             eprintln!("ERROR: Dir or file path is not provided");
             process::exit(1);
         }
@@ -48,11 +66,29 @@ fn main() {
     
 // Logic for reading Dir's
 
-    let mut songs: Vec<_> = WalkDir::new(file_path)
-        .into_iter()
-        .filter_map(Result::ok)
-        .filter_map(|entry| entry.path().to_str().map(String::from))
-        .collect();
+    let mut songs = Vec::<String>::new();
+    songs.push(file_path.clone());
+
+    for entry in WalkDir::new(file_path.clone()) {
+        match entry {
+            Ok(entry) => {
+                if is_music_file(&entry) {
+                    songs.push(get_file(entry).unwrap());
+                }
+            }
+            Err(_) => {
+                eprintln!("ERROR: specifed path doesn't exist");
+                process::exit(0);
+            }
+        }
+    }
+
+    if songs.len() == 1 && songs[0] == file_path {
+        eprintln!(
+            "ERROR: there is no audio files in this dir : {}", songs[0]
+        );
+        process::exit(0);
+    }
 
     let (_stream, stream_handle) = OutputStream::try_default().unwrap();
     let sink = Sink::try_new(&stream_handle).unwrap();
@@ -66,31 +102,30 @@ fn main() {
     init_pair(REGULAR_PAIR, COLOR_WHITE, COLOR_BLACK);
     init_pair(HIGHLIGHTED_PAIR, COLOR_BLACK, COLOR_WHITE);
     init_pair(COLORED_PAIR, COLOR_GREEN, COLOR_YELLOW);
+    init_pair(1, COLOR_BLACK, COLOR_BLUE);
+    init_pair(3, COLOR_WHITE, COLOR_RED);
+    init_pair(2, COLOR_WHITE, COLOR_BLACK);
+
+    // Event loop setup :
 
     let mut quit = false;
-    let mut state = String::new();
     let mut ui = ui::Ui::default();
     let mut status = Status::Stoped;
     let mut index: usize = 0;
 
     while !quit {
+
+        if songs.len() == 1 {
+            quit = true
+        } else {
+            quit = false
+        }
+
         erase();
         // Ui Block
         { 
             ui.begin(0, 0);
-            match status {
-                Status::Paused => {
-                    state = " Paused  ".to_string();
-                },
-                Status::Playing => {
-                    state = " Playing ".to_string();
-                },
-                Status::Stoped => {
-                    state = " Stoped  ".to_string();
-                }
-            }
-            
-            ui.label(&curr_dir, REGULAR_PAIR);
+            ui.label(&("Currently playing music from : ".to_string() + &curr_dir), REGULAR_PAIR);
 
             ui.begin_list(index);
             for (i, song) in songs.iter().enumerate() {
@@ -99,20 +134,29 @@ fn main() {
             }
             ui.end_list();
 
-            start_color();
-            init_pair(1, COLOR_BLACK, COLOR_BLUE);
-            init_pair(2, COLOR_WHITE, COLOR_BLACK);
-            init_pair(3, COLOR_WHITE, COLOR_RED);
-
             let song_name = " ".to_owned() + &songs.get(index)
                 .unwrap()
                 .trim_start_matches(&curr_dir)
                 .trim_start_matches("/")
                 .clone() + " ";
 
+            let mut state = "Paused".to_string();
+            match status {
+                Status::Paused => {
+                    state = state.clone();
+                },
+                Status::Playing => {
+                    state = " Playing ".to_string();
+                },
+                Status::Stoped => {
+                    state = " Stopped ".to_string();
+                }
+            }
+
             let mut statusbar = StatusBar {parent: stdscr(), parts: Vec::<StatusBarPart>::new()};
             statusbar.status_bar(3, stdscr());
-            statusbar.set_text(0, state, COLOR_PAIR(1));
+            statusbar.set_text(0, state,
+                if status == Status::Stoped { COLOR_PAIR(3) } else { COLOR_PAIR(1) });
             statusbar.set_text(1, song_name, COLOR_PAIR(2));
             statusbar.set_text(2, " Cool Text ".to_string(), COLOR_PAIR(3));
             statusbar.draw();
@@ -125,7 +169,6 @@ fn main() {
                 let file = BufReader::new(File::open(songs.get(index).unwrap())
                     .expect("ERROR: No such file or directory"));
                 let source = Decoder::new(file).unwrap();
-                    
                 sink.append(source); 
 
                 match status {
@@ -141,8 +184,6 @@ fn main() {
                     }
                 }
             },
-
-            // Movement :
             'w' => {
                 if index > 0 {
                     index -= 1
@@ -156,7 +197,11 @@ fn main() {
 
             'q' => {
                 sink.stop();
-                quit = true
+                quit = true;
+                mvprintw(songs.len() as i32 + 1 , 1, "\n");
+                mvprintw(songs.len() as i32 + 2 , 1, "exiting ...");
+                refresh();
+                std::thread::sleep(std::time::Duration::from_secs_f32(0.5));
             },
 
             ' ' => match status {

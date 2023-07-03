@@ -1,12 +1,16 @@
-use clap::{
-    Args,
+use clap:: {
+    // Args,
     Parser,
-    Subcommand, Command
+    // Subcommand
 };
 
-#[derive(Parser,Default,Debug)]
-struct Arguments {
-    Commande: Cmd,
-    path: str, // this can be either a path to a dir or to a audio file 
+#[derive(Debug, Parser)]
+#[command(author, version, about)]
+pub struct Cli {
+    /// 1st argument
+    pub first_arg: String,
+    /// 2nd argument
+    pub second_arg: String,
+    /// 3rd argument
+    pub third_arg: String
 }
-
