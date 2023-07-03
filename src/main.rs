@@ -128,17 +128,17 @@ fn main() {
             }
             ui.end_list();
 
-            let path = Path::new(songs.get(index).unwrap());
-            let total_secs: f32 = ((mp3_duration::from_path(path).unwrap().as_secs()) as f32) / 60f32;
-            let mins = total_secs.floor() as u32;
-            let secs = (
-                (total_secs - total_secs.floor()) * 60f32 
-            ).round();
-            let duration = if secs >= 10f32 {
-                format!("  {}:{}  ", mins, secs)
-            } else {
-                format!("  {}:0{}  ", mins, secs)
-            };
+            // let path = Path::new(songs.get(index).unwrap());
+            // let total_secs: f32 = ((mp3_duration::from_path(path).unwrap().as_secs()) as f32) / 60f32;
+            // let mins = total_secs.floor() as u32;
+            // let secs = (
+            //     (total_secs - total_secs.floor()) * 60f32 
+            // ).round();
+            // let duration = if secs >= 10f32 {
+            //     format!("  {}:{}  ", mins, secs)
+            // } else {
+            //     format!("  {}:0{}  ", mins, secs)
+            // };
 
             let song_name = " ".to_owned() + songs.get(index)
                 .unwrap()
@@ -166,7 +166,7 @@ fn main() {
                 if status == Status::Stoped { COLOR_PAIR(3) } else { COLOR_PAIR(1) }
             );
             statusbar.set_text(1, song_name, COLOR_PAIR(2));
-            statusbar.set_text(2, duration, COLOR_PAIR(3));
+            statusbar.set_text(2, " duration ".to_string(), COLOR_PAIR(3));
             statusbar.draw();
         }
 
