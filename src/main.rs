@@ -115,13 +115,6 @@ fn main() {
     let mut index: usize = 0;
 
     while !quit {
-
-        if songs.len() == 1 {
-            quit = true
-        } else {
-            quit = false
-        }
-
         erase();
         // Ui Block
         { 
@@ -136,18 +129,21 @@ fn main() {
             ui.end_list();
 
             let path = Path::new(songs.get(index).unwrap());
-            let total_secs: f32 = ((mp3_duration::from_path(&path).unwrap().as_secs()) as f32) / 60f32;
+            let total_secs: f32 = ((mp3_duration::from_path(path).unwrap().as_secs()) as f32) / 60f32;
             let mins = total_secs.floor() as u32;
             let secs = (
-                (total_secs - total_secs.floor()) * 60f32
+                (total_secs - total_secs.floor()) * 60f32 
             ).round();
-            let duration = format!("  {}:{}  ", mins, secs);
+            let duration = if secs >= 10f32 {
+                format!("  {}:{}  ", mins, secs)
+            } else {
+                format!("  {}:0{}  ", mins, secs)
+            };
 
-            let song_name = " ".to_owned() + &songs.get(index)
+            let song_name = " ".to_owned() + songs.get(index)
                 .unwrap()
                 .trim_start_matches(&curr_dir)
-                .trim_start_matches("/")
-                .clone() + " ";
+                .trim_start_matches('/') + " ";
 
             let mut state = "Paused".to_string();
             match status {
@@ -199,7 +195,7 @@ fn main() {
             },
             'w' => {
                 if index > 0 {
-                    index -= 1
+                    index = index.saturating_sub(1);
                 }
             },
             's' => {

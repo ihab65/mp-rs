@@ -63,7 +63,7 @@ pub struct StatusBarPart {
 }
 impl StatusBarPart {
     pub fn get_text(&mut self) -> String {
-        return self.text.clone() ;
+        self.text.clone()
     }
     pub fn set_text(&mut self, text: String, attr: attr_t) {
         self.text = text;
@@ -72,7 +72,7 @@ impl StatusBarPart {
         }
     }
     pub fn get_attrs(&mut self) -> attr_t {
-        return self.attributes;
+        self.attributes
     }
 }
 
