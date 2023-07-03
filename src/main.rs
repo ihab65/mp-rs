@@ -2,7 +2,7 @@ use ncurses::*;
 use ui::{StatusBar, StatusBarPart};
 use walkdir::{DirEntry, WalkDir};
 use std::env;
-use std::{fs::File, process};
+use std::{path::Path, fs::File, process};
 use std::io::BufReader;
 use rodio::{Decoder, OutputStream, Sink};
 
@@ -106,6 +106,7 @@ fn main() {
     init_pair(3, COLOR_WHITE, COLOR_RED);
     init_pair(2, COLOR_WHITE, COLOR_BLACK);
 
+
     // Event loop setup :
 
     let mut quit = false;
@@ -134,6 +135,14 @@ fn main() {
             }
             ui.end_list();
 
+            let path = Path::new(songs.get(index).unwrap());
+            let total_secs: f32 = ((mp3_duration::from_path(&path).unwrap().as_secs()) as f32) / 60f32;
+            let mins = total_secs.floor() as u32;
+            let secs = (
+                (total_secs - total_secs.floor()) * 60f32
+            ).round();
+            let duration = format!("  {}:{}  ", mins, secs);
+
             let song_name = " ".to_owned() + &songs.get(index)
                 .unwrap()
                 .trim_start_matches(&curr_dir)
@@ -155,10 +164,13 @@ fn main() {
 
             let mut statusbar = StatusBar {parent: stdscr(), parts: Vec::<StatusBarPart>::new()};
             statusbar.status_bar(3, stdscr());
-            statusbar.set_text(0, state,
-                if status == Status::Stoped { COLOR_PAIR(3) } else { COLOR_PAIR(1) });
+            statusbar.set_text(
+                0,
+                state,
+                if status == Status::Stoped { COLOR_PAIR(3) } else { COLOR_PAIR(1) }
+            );
             statusbar.set_text(1, song_name, COLOR_PAIR(2));
-            statusbar.set_text(2, " Cool Text ".to_string(), COLOR_PAIR(3));
+            statusbar.set_text(2, duration, COLOR_PAIR(3));
             statusbar.draw();
         }
 
@@ -170,6 +182,7 @@ fn main() {
                     .expect("ERROR: No such file or directory"));
                 let source = Decoder::new(file).unwrap();
                 sink.append(source); 
+                
 
                 match status {
                     Status::Paused => {}

@@ -11,3 +11,4 @@ clap = { version = "4.3.10", features = ["derive"] }
 ncurses = "5.101.0"
 rodio = "0.17.1"
 walkdir = "2.3.3"
+mp3-duration = "0.1.10"
