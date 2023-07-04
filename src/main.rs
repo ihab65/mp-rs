@@ -1,15 +1,14 @@
 use ncurses::*;
-use ui::{StatusBar, StatusBarPart};
 use walkdir::{DirEntry, WalkDir};
-use std::env;
-use std::{path::Path, fs::File, process};
-use std::io::BufReader;
 use rodio::{Decoder, OutputStream, Sink};
+use std::{io::BufReader, env, fs::File, process, path::Path};
+
 
 mod ui;
+use ui::{StatusBar, StatusBarPart};
 // mod lib;
 
-const MUSIC_FILES: [&str; 4] = ["mp3", "wav", "ogg", "flac"];
+const MUSIC_FILES: [&str; 1] = ["mp3"];
 const REGULAR_PAIR: i16 = 0;
 const HIGHLIGHTED_PAIR: i16 = 1;
 const COLORED_PAIR: i16 = 2;
@@ -128,17 +127,17 @@ fn main() {
             }
             ui.end_list();
 
-            // let path = Path::new(songs.get(index).unwrap());
-            // let total_secs: f32 = ((mp3_duration::from_path(path).unwrap().as_secs()) as f32) / 60f32;
-            // let mins = total_secs.floor() as u32;
-            // let secs = (
-            //     (total_secs - total_secs.floor()) * 60f32 
-            // ).round();
-            // let duration = if secs >= 10f32 {
-            //     format!("  {}:{}  ", mins, secs)
-            // } else {
-            //     format!("  {}:0{}  ", mins, secs)
-            // };
+            let path = Path::new(songs.get(index).unwrap());
+            let total_secs: f32 = ((mp3_duration::from_path(path).unwrap().as_secs()) as f32) / 60f32;
+            let mins = total_secs.floor() as u32;
+            let secs = (
+                (total_secs - total_secs.floor()) * 60f32 
+            ).round();
+            let duration = if secs >= 10f32 {
+                format!("  {}:{}  ", mins, secs)
+            } else {
+                format!("  {}:0{}  ", mins, secs)
+            };
 
             let song_name = " ".to_owned() + songs.get(index)
                 .unwrap()
@@ -166,7 +165,7 @@ fn main() {
                 if status == Status::Stoped { COLOR_PAIR(3) } else { COLOR_PAIR(1) }
             );
             statusbar.set_text(1, song_name, COLOR_PAIR(2));
-            statusbar.set_text(2, " duration ".to_string(), COLOR_PAIR(3));
+            statusbar.set_text(2, duration, COLOR_PAIR(3));
             statusbar.draw();
         }
 
@@ -174,11 +173,10 @@ fn main() {
 
         match key as u8 as char {
             '\n' => {
-                let file = BufReader::new(File::open(songs.get(index).unwrap())
+                let file: BufReader<File> = BufReader::new(File::open(songs.get(index).unwrap())
                     .expect("ERROR: No such file or directory"));
-                let source = Decoder::new(file).unwrap();
+                let source: Decoder<BufReader<File>> = Decoder::new(file).unwrap();
                 sink.append(source); 
-                
 
                 match status {
                     Status::Paused => {}
