@@ -1,14 +1,17 @@
+use actions::check_path;
 use ncurses::*;
 use walkdir::{DirEntry, WalkDir};
 use rodio::{Decoder, OutputStream, Sink};
-use std::{io::BufReader, env, fs::File, process, path::Path};
-
+use std::{io::BufReader, fs::File, process, path::Path};
+use clap::Parser;
 
 mod ui;
+mod cli;
+mod actions;
 use ui::{StatusBar, StatusBarPart};
 // mod lib;
 
-const MUSIC_FILES: [&str; 1] = ["mp3"];
+
 const REGULAR_PAIR: i16 = 0;
 const HIGHLIGHTED_PAIR: i16 = 1;
 const COLORED_PAIR: i16 = 2;
@@ -20,13 +23,7 @@ enum Status {
     Stoped
 }
 
-fn is_music_file(entry: &DirEntry) -> bool {
-    entry
-        .path()
-        .extension()
-        .and_then(std::ffi::OsStr::to_str)
-        .map_or(false, |extension| MUSIC_FILES.contains(&extension))
-}
+
 
 fn get_file(entry: DirEntry) -> Result<String, ()> {
     match entry.path().to_str() {
@@ -41,46 +38,19 @@ fn get_file(entry: DirEntry) -> Result<String, ()> {
 }
 
 fn main() {
+    let args = cli::MPRSArgs::parse();
+    match &args.command {
+        cli::Commands::Play(path) => check_path(path)
+    }
 
-    // argument parsing
-
-    // let args = lib::Cli::parse();
-
-    // process::exit(1);
-
-    // temporary arg parsing
-    
-    let mut args = env::args();
-    args.next().unwrap();
-
-    let file_path = match args.next() {
-        Some(file_path) => file_path,
-        None => {
-            eprintln!("Usage: mp-rs <path>");
-            eprintln!("ERROR: Dir or file path is not provided");
-            process::exit(1);
-        }
-    };
+    process::exit(1);
 
     
 // Logic for reading Dir's
 
-    let mut songs = Vec::<String>::new();
-    songs.push(file_path.clone());
-
-    for entry in WalkDir::new(file_path.clone()) {
-        match entry {
-            Ok(entry) => {
-                if is_music_file(&entry) {
-                    songs.push(get_file(entry).unwrap());
-                }
-            }
-            Err(_) => {
-                eprintln!("ERROR: specifed path doesn't exist");
-                process::exit(0);
-            }
-        }
-    }
+    let file_path = "~/Music";
+    let songs = vec!["one"];
+    
 
     if songs.len() == 1 && songs[0] == file_path {
         eprintln!(
@@ -122,7 +92,7 @@ fn main() {
 
             ui.begin_list(index);
             for (i, song) in songs.iter().enumerate() {
-                let song = song.trim_start_matches(&(curr_dir.clone() + "/"));
+                let song = song.trim_start_matches(&(curr_dir.to_owned() + "/"));
                 ui.list_element(&format!("{} - {}" , i + 1, song), i);
             }
             ui.end_list();
