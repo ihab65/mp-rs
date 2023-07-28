@@ -12,7 +12,7 @@ use ui::{StatusBar, StatusBarPart};
 mod ui;
 mod cli;
 mod actions;
-mod lib;
+mod arguments;
 
 const REGULAR_PAIR: i16 = 0;
 const HIGHLIGHTED_PAIR: i16 = 1;
@@ -26,6 +26,7 @@ enum Status {
 }
 
 fn main() {
+    #[allow(unused_assignments)]
     let mut songs = Vec::<PathBuf>::new();
 
     let args = cli::MPRSArgs::parse();

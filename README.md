@@ -10,10 +10,9 @@ a simple TUI music player written in rust
 ```
 git clone https://github.com/ihab65/mp-rs.git
 cd mp-rs/
-cargo run <Music_Dir_path>
+cargo run play <PATH>
 ```
 - **Important ! :** 
-- `<Music_Dir_path>` should be a directory that containes audio files if not the files or dirs present in there won't show in the list .
 - supported audio file formats are : "mp3". 
 
 
