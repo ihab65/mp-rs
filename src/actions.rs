@@ -16,35 +16,44 @@ fn is_music_file(entry: &PathBuf) -> bool {
         .map_or(false, |extension| MUSIC_FILES.contains(&extension))
 }
 
-pub fn check_path(PathToPlay { path }: &PathToPlay) {
-    let path = PathBuf::new().join(path);
+pub fn check_path(PathToPlay { path }: &PathToPlay) -> Vec<PathBuf> {
+    let path = PathBuf::new().join(path).canonicalize().unwrap();
+    let mut list = Vec::<PathBuf>::new();
 
-    if path.exists() { // path exists
-        println!("{:?}", path.canonicalize().unwrap());
-
-        if path.is_dir() { // path is a Dir
-            println!("the path you spicified is a dir");
-            let list = dir_case(path.clone());
-            
-            if list.len() == 1 && list[0] == path.clone().canonicalize().unwrap() {
-                eprintln!("ERROR: there is no audio files in : {}", list[0].display());
-                process::exit(0);
-            }
-
-        } else if path.is_file() { 
-            println!("this is a path to a file");
-            if is_music_file(&path) {
-                println!("this is a supported file type")
-            } else {
-                println!("ERROR: this is not a supported file")
-            }
+    if path.exists() {
+        if path.is_dir() {
+            list = dir_case(path);
+        } else if path.is_file() {
+            list = file_case(path)
         }
     } else {
-        println!("ERROR: the specified path doesn't exist")
-    }
+        println!("ERROR: the path doesn't exist")
+    };
+
+    list
 }
 
 pub fn dir_case(path: PathBuf) -> Vec<PathBuf> {
+    let list = get_songs_from_dir(path.clone());
+    if list.len() == 1 && list[0] == path.clone() {
+        eprintln!("ERROR: there is no audio files in : {}", list[0].display());
+        process::exit(0);
+    }
+    list
+}
+
+pub fn file_case(path: PathBuf) -> Vec<PathBuf> {
+    let mut list = Vec::<PathBuf>::new();
+
+    if is_music_file(&path) {
+        list.push(path);
+    } else {
+        println!("ERROR: this path isn't a audio file");
+    }
+    list
+}
+
+pub fn get_songs_from_dir(path: PathBuf) -> Vec<PathBuf> {
     let mut songs = Vec::<PathBuf>::new();
     songs.push(path.clone().canonicalize().unwrap());
 

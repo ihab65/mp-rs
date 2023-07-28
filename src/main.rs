@@ -1,16 +1,18 @@
-use actions::check_path;
 use ncurses::*;
-use walkdir::{DirEntry, WalkDir};
 use rodio::{Decoder, OutputStream, Sink};
-use std::{io::BufReader, fs::File, process, path::Path};
+use std::{
+    io::BufReader,
+    fs::File,
+    path::PathBuf
+};
 use clap::Parser;
+use actions::check_path;
+use ui::{StatusBar, StatusBarPart};
 
 mod ui;
 mod cli;
 mod actions;
-use ui::{StatusBar, StatusBarPart};
-// mod lib;
-
+mod lib;
 
 const REGULAR_PAIR: i16 = 0;
 const HIGHLIGHTED_PAIR: i16 = 1;
@@ -23,45 +25,27 @@ enum Status {
     Stoped
 }
 
-
-
-fn get_file(entry: DirEntry) -> Result<String, ()> {
-    match entry.path().to_str() {
-        Some(file) => {
-            let file = file.to_string();
-            Ok(file)
-        },
-        None => {
-            Err(println!("ERROR: failed to convert `DirEntry` to var of type String"))
-        }
-    }
-}
-
 fn main() {
+    let mut songs = Vec::<PathBuf>::new();
+
     let args = cli::MPRSArgs::parse();
     match &args.command {
-        cli::Commands::Play(path) => check_path(path)
+        cli::Commands::Play(path) => {
+            songs = check_path(path);
+        }
     }
 
-    process::exit(1);
+    let mut curr_dir = String::new();
 
-    
-// Logic for reading Dir's
-
-    let file_path = "~/Music";
-    let songs = vec!["one"];
-    
-
-    if songs.len() == 1 && songs[0] == file_path {
-        eprintln!(
-            "ERROR: there is no audio files in this dir : {}", songs[0]
-        );
-        process::exit(0);
+    if !(songs.len() == 1 && songs[0].is_file()) {
+        curr_dir = songs.remove(0)
+            .to_str()
+            .unwrap()
+            .to_string();
     }
-
+    
     let (_stream, stream_handle) = OutputStream::try_default().unwrap();
     let sink = Sink::try_new(&stream_handle).unwrap();
-    let curr_dir = songs.remove(0);
     
     initscr();
     noecho();
@@ -75,9 +59,7 @@ fn main() {
     init_pair(3, COLOR_WHITE, COLOR_RED);
     init_pair(2, COLOR_WHITE, COLOR_BLACK);
 
-
     // Event loop setup :
-
     let mut quit = false;
     let mut ui = ui::Ui::default();
     let mut status = Status::Stoped;
@@ -92,24 +74,14 @@ fn main() {
 
             ui.begin_list(index);
             for (i, song) in songs.iter().enumerate() {
-                let song = song.trim_start_matches(&(curr_dir.to_owned() + "/"));
+                let song = song.to_str().unwrap().trim_start_matches(&(curr_dir.to_owned() + "/"));
                 ui.list_element(&format!("{} - {}" , i + 1, song), i);
             }
             ui.end_list();
 
-            let path = Path::new(songs.get(index).unwrap());
-            let total_secs: f32 = ((mp3_duration::from_path(path).unwrap().as_secs()) as f32) / 60f32;
-            let mins = total_secs.floor() as u32;
-            let secs = (
-                (total_secs - total_secs.floor()) * 60f32 
-            ).round();
-            let duration = if secs >= 10f32 {
-                format!("  {}:{}  ", mins, secs)
-            } else {
-                format!("  {}:0{}  ", mins, secs)
-            };
-
             let song_name = " ".to_owned() + songs.get(index)
+                .unwrap()
+                .to_str()
                 .unwrap()
                 .trim_start_matches(&curr_dir)
                 .trim_start_matches('/') + " ";
@@ -135,7 +107,7 @@ fn main() {
                 if status == Status::Stoped { COLOR_PAIR(3) } else { COLOR_PAIR(1) }
             );
             statusbar.set_text(1, song_name, COLOR_PAIR(2));
-            statusbar.set_text(2, duration, COLOR_PAIR(3));
+            statusbar.set_text(2, "xx:xx".to_string(), COLOR_PAIR(3));
             statusbar.draw();
         }
 
